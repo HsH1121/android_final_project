@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    container_name: android_final_postgres
+    environment:
+      POSTGRES_DB: android_final_project
+      POSTGRES_USER: android_user
+      POSTGRES_PASSWORD: android_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - android_final_data:/var/lib/postgresql/data
+
+volumes:
+  android_final_data:

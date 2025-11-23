@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="회원가입"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:paddingBottom="24dp" />
+
+    <EditText
+        android:id="@+id/edtSignUpId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="아이디"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/edtSignUpPw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="비밀번호"
+        android:inputType="textPassword"
+        android:layout_marginTop="12dp" />
+
+    <EditText
+        android:id="@+id/edtSignUpPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="전화번호"
+        android:inputType="phone"
+        android:layout_marginTop="12dp" />
+
+    <EditText
+        android:id="@+id/edtSignUpNickname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="닉네임"
+        android:inputType="textPersonName"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnSignUpOk"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="회원가입 완료"
+        android:layout_marginTop="24dp" />
+
+</LinearLayout>
