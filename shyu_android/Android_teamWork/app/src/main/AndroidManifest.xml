@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application
+        android:allowBackup="true"
+        android:usesCleartextTraffic="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Android_teamWork">
+
+        <!-- 채팅 페이지 -->
+        <activity android:name=".ChatActivity"
+            android:exported="false" />
+
+        <!-- 뉴스 페이지 -->
+        <activity android:name=".NewsActivity"
+            android:exported="false" />
+
+        <!-- 분석 페이지 -->
+        <activity android:name=".AnalyzeActivity"
+            android:exported="false" />
+
+        <!-- 메인 페이지 (런처 Activity) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">   <!-- 여기 중요!!! -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
