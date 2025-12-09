@@ -2,8 +2,12 @@ from typing import List, Dict
 import os
 
 from google import genai
+from dotenv import load_dotenv  # ★ 추가
 
-# 환경 변수에서 API 키를 읽어오도록 변경
+# .env 로드
+load_dotenv()  # ★ 현재 폴더(.env) 읽어서 환경변수에 올림
+
+# 환경 변수에서 API 키를 읽어옴
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # 사용 모델 이름
@@ -16,7 +20,7 @@ def _get_client() -> genai.Client:
     global _client
     if _client is None:
         if not GEMINI_API_KEY:
-            raise RuntimeError("GEMINI_API_KEY 환경 변수가 설정되어 있지 않습니다.")
+            raise RuntimeError("GEMINI_API_KEY is none")
         _client = genai.Client(api_key=GEMINI_API_KEY)
     return _client
 
@@ -54,30 +58,31 @@ def fact_check_claim(claim: str, articles: List[Dict[str, str]]) -> str:
 
     prompt = f"""당신은 한국어 뉴스 기반 팩트체크 전문가입니다.
 
-검증할 주장:
-\"\"\"{claim}\"\"\"
+    검증할 주장:
+    \"\"\"{claim}\"\"\"
 
-참고할 기사들:
-{context}
 
-아래 형식을 최대한 지켜서 한국어로 답변하세요.
+    참고할 기사들:
+    {context}
 
-1. 사실 여부를 첫 줄에 명시 (세 가지 중 하나로 시작할 것):
-- "판단: 사실로 보입니다."
-- "판단: 거짓일 가능성이 높습니다."
-- "판단: 아직 불확실합니다."
+    아래 형식을 최대한 지켜서 한국어로 답변하세요.
 
-2. 근거:
-- 어떤 기사(번호 기준)에서 어떤 내용을 근거로 삼았는지 설명
+    1. 사실 여부를 첫 줄에 명시 (세 가지 중 하나로 시작할 것):
+    - "판단: 사실로 보입니다."
+    - "판단: 거짓일 가능성이 높습니다."
+    - "판단: 아직 불확실합니다."
 
-3. 논리적/정보적 허점:
-- 기사들 사이의 모순점
-- 아직 확인되지 않은 추측, 루머, 클릭베이트 표현
+    2. 근거:
+    - 어떤 기사(번호 기준)에서 어떤 내용을 근거로 삼았는지 설명
 
-4. 종합 코멘트:
-- 사용자가 이 이슈를 어떻게 받아들이면 좋을지, 주의할 점
+    3. 논리적/정보적 허점:
+    - 기사들 사이의 모순점
+    - 아직 확인되지 않은 추측, 루머, 클릭베이트 표현
 
-너무 장황하게 쓰지 말고, 핵심만 정리하세요."""
+    4. 종합 코멘트:
+    - 사용자가 이 이슈를 어떻게 받아들이면 좋을지, 주의할 점
+
+    너무 장황하게 쓰지 말고, 핵심만 정리하세요."""
 
     return generate_with_gemini(prompt)
 

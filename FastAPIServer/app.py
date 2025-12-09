@@ -14,7 +14,9 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
 import os
+from dotenv import load_dotenv   # ★ 추가
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -32,10 +34,10 @@ from schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
 )
-
 from naver_news import NaverNewsCrawler, fetch_article_content
 from gemini import fact_check_claim, generate_with_gemini
 
+load_dotenv()
 app = FastAPI(title="FastAPIServer")
 
 # CORS 설정 (안드로이드 에뮬레이터에서 호출 편하게)
@@ -48,8 +50,10 @@ app.add_middleware(
 )
 
 # 네이버 뉴스 크롤러 준비 (환경 변수에서 키 읽기)
-NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "Hzw3dCM4tPwnANV_F_Zy")
-NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "9aABdVnll1")
+NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "")
+NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
+if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+    print("[WARN] NAVER_CLIENT_ID/NAVER_CLIENT_SECRET is none")
 
 news_crawler = NaverNewsCrawler(NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
 
