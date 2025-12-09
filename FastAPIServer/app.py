@@ -13,6 +13,8 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import os
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -24,9 +26,32 @@ from schemas import (
     UserExistsResponse,
     LoginRequest,
     LoginResponse,
+    Article,
+    FactCheckRequest,
+    FactCheckResponse,
+    AnalyzeRequest,
+    AnalyzeResponse,
 )
 
-app = FastAPI(title="Local WS Chat (1:1)")
+from naver_news import NaverNewsCrawler, fetch_article_content
+from gemini import fact_check_claim, generate_with_gemini
+
+app = FastAPI(title="FastAPIServer")
+
+# CORS 설정 (안드로이드 에뮬레이터에서 호출 편하게)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 네이버 뉴스 크롤러 준비 (환경 변수에서 키 읽기)
+NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "Hzw3dCM4tPwnANV_F_Zy")
+NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "9aABdVnll1")
+
+news_crawler = NaverNewsCrawler(NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
 
 # ====== DB 초기화 ======
 @app.on_event("startup")
@@ -248,6 +273,104 @@ def user_exists(phone: str, db: Session = Depends(get_db)):
     if not user:
         return UserExistsResponse(exists=False)
     return UserExistsResponse(exists=True, nickname=user.nickname)
+
+@app.post("/fact-check", response_model=FactCheckResponse)
+async def fact_check(req: FactCheckRequest):
+    """
+    채팅 중 나온 주장(문장)을 받아
+    - 네이버 뉴스에서 최신 기사 5개 검색
+    - 각 기사 원문을 크롤링
+    - Gemini로 사실 여부/논리적 허점 분석
+    을 수행한 뒤 결과를 반환.
+    """
+    claim = req.claim.strip()
+    if not claim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="claim must not be empty",
+        )
+
+    # 1) 뉴스 검색
+    news_items = news_crawler.search(claim, display=5)
+
+    # 2) 각 기사 원문 크롤링
+    articles: list[Article] = []
+    for item in news_items:
+        content = fetch_article_content(item.get("link", ""))
+        articles.append(
+            Article(
+                title=item.get("title", ""),
+                link=item.get("link", ""),
+                desc=item.get("desc", ""),
+                content=content,
+            )
+        )
+
+    # 3) Gemini로 팩트체크 분석
+    analysis_text = fact_check_claim(
+        claim,
+        [
+            {
+                "title": a.title,
+                "link": a.link,
+                "desc": a.desc,
+                "content": a.content,
+            }
+            for a in articles
+        ],
+    )
+
+    # 4) verdict 간단 추출 (텍스트 패턴)
+    verdict = "unknown"
+    if analysis_text:
+        lower = analysis_text.lower()
+        if (
+            "거짓일 가능성이 높습니다" in analysis_text
+            or "거짓" in analysis_text
+            or "false" in lower
+        ):
+            verdict = "false"
+        elif (
+            "사실로 보입니다" in analysis_text
+            or "사실" in analysis_text
+            or "true" in lower
+        ):
+            verdict = "true"
+        elif (
+            "불확실" in analysis_text
+            or "확실하지" in analysis_text
+            or "uncertain" in lower
+        ):
+            verdict = "uncertain"
+
+    return FactCheckResponse(
+        claim=claim,
+        verdict=verdict,
+        analysis=analysis_text or "",
+        articles=articles,
+    )
+
+@app.post("/analyze", response_model=AnalyzeResponse)
+async def analyze(payload: AnalyzeRequest):
+    """
+    일반 텍스트 분석 (예: 문장 분석 화면에서 호출)
+    """
+    text = (payload.text or "").strip()
+    if not text:
+        return AnalyzeResponse(analysis=None)
+
+    result = generate_with_gemini(text)
+    return AnalyzeResponse(analysis=result)
+
+
+@app.get("/news")
+async def news(q: str, display: int = 10):
+    """
+    뉴스 검색 (shyu_android에서 쓰던 /news 그대로)
+    """
+    items = news_crawler.search(q, display)
+    # 기존 back/app 처럼 {"news": [...]} 형태로 반환
+    return {"news": items}
 
 
 if __name__ == "__main__":

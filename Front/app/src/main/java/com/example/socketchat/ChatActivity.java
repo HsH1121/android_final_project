@@ -25,6 +25,8 @@ import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
 
+import android.content.Intent;
+
 public class ChatActivity extends AppCompatActivity {
 
     TextView tvChatTitle;
@@ -74,7 +76,11 @@ public class ChatActivity extends AppCompatActivity {
 
         // RecyclerView + 메시지 리스트 준비
         messages = new ArrayList<>();
-        msgAdapter = new MessageAdapter(messages);
+        msgAdapter = new MessageAdapter(messages, message -> {
+            Intent intent = new Intent(ChatActivity.this, FactCheckActivity.class);
+            intent.putExtra("CLAIM_TEXT", message.getContent());
+            startActivity(intent);
+        });
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true); // 아래부터 쌓이도록

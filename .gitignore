@@ -6,8 +6,6 @@ desktop.ini
 
 # 로그
 *.log
-logs/
-# Python (WebSocketServer 등)
 
 # 바이트코드 / 캐시
 __pycache__/
@@ -34,7 +32,6 @@ htmlcov/
 
 # 환경 변수 / 비밀 키
 .env
-WebSocketServer/.env
 
 # Android / Gradle / IntelliJ (Front)
 
@@ -45,7 +42,6 @@ WebSocketServer/.env
 # Gradle
 .gradle/
 build/
-*/build/
 !gradle/wrapper/gradle-wrapper.jar
 
 # 로컬 설정 파일

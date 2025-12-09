@@ -12,13 +12,19 @@ import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    public interface OnMessageLongClickListener {
+        void onMessageLongClick(Message message);
+    }
+
     private static final int VIEW_TYPE_OTHER = 0;
     private static final int VIEW_TYPE_ME = 1;
 
     private final List<Message> messages;
+    private final OnMessageLongClickListener longClickListener;
 
-    public MessageAdapter(List<Message> messages) {
+    public MessageAdapter(List<Message> messages, OnMessageLongClickListener longClickListener) {
         this.messages = messages;
+        this.longClickListener = longClickListener;
     }
 
     @Override
@@ -54,6 +60,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         } else if (holder instanceof OtherViewHolder) {
             ((OtherViewHolder) holder).tvMessageOther.setText(msg.getContent());
         }
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onMessageLongClick(msg);
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
